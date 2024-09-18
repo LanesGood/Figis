@@ -1,15 +1,21 @@
-import { render, useWindowResize, Container, Button } from "@create-figma-plugin/ui";
+import {
+  render,
+  useWindowResize,
+  Container,
+  Button,
+  FileUploadButton,
+} from "@create-figma-plugin/ui";
 import { emit } from "@create-figma-plugin/utilities";
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import { ResizeWindowHandler } from "./types";
 import MapComponent from "./map";
 
-
 import "!./styles.css";
 
 function Plugin() {
   const [mapImage, setMapImage] = useState<string>("");
+  const [uploads, setUploads] = useState<Array<File>>([]);
   function onWindowResize(windowSize: { width: number; height: number }) {
     emit<ResizeWindowHandler>("RESIZE_WINDOW", windowSize);
   }
@@ -20,13 +26,30 @@ function Plugin() {
     minWidth: 600,
     resizeBehaviorOnDoubleClick: "minimize",
   });
-  console.log(mapImage);
+  const acceptedFileTypes = ["application/json", "application/geojson"];
+
   return (
     <Container space="medium">
-      <MapComponent setMapImage={setMapImage} />
+      <MapComponent setMapImage={setMapImage} uploads={uploads} />
+      <FileUploadButton
+        secondary
+        acceptedFileTypes={acceptedFileTypes}
+        id="upload"
+        multiple
+        onSelectedFiles={(files: Array<File>) => {
+          setUploads(files);
+        }}
+      >
+        Upload Data
+      </FileUploadButton>
       <Button
         id="render"
-        onClick={() => parent.postMessage({pluginMessage: { type: "image", image: mapImage }}, '*')}
+        onClick={() =>
+          parent.postMessage(
+            { pluginMessage: { type: "image", image: mapImage } },
+            "*"
+          )
+        }
       >
         Render
       </Button>
